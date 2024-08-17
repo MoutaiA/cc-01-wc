@@ -90,22 +90,29 @@ async function getInputData() {
 }
 
 async function main() {
-	// TODO: multiple files & multiple args
 	let { files, arguments = [] } = await getInputData();
 	let ans = '';
 
-	for (const file of files) {
-		for (const arg of arguments) {
+	const totals = new Array(arguments.length).fill(0);
+	for (const element of files) {
+		const { file, filename } = element;
+		for (const [i, arg] of arguments.entries()) {
 			if (!(arg in ARGUMENTS_MAPPING)) {
 				console.log(`ccwc: illegel option -- ${arg}`);
 				continue;
 			}
 
-			ans += ARGUMENTS_MAPPING[arg](file);
+			const cur = ARGUMENTS_MAPPING[arg](file);
+			ans += `${cur}\t`;
+			totals[i] += cur;
 		}
 		if (ans) {
-			ans += '\n';
+			ans += `${filename}\n`;
 		}
+	}
+
+	for (const total of totals) {
+		ans += `${total}\t`;
 	}
 
 	if (!arguments || arguments.length === 0) {
@@ -122,7 +129,7 @@ async function main() {
 			totalCharacters += chars;
 			ans += `${lines}\t${words}\t${chars}\t${filename}\n`;
 		}
-		ans += `${totalLines}\t${totalWords}\t${totalCharacters}`
+		ans += `${totalLines}\t${totalWords}\t${totalCharacters}`;
 	}
 
 	if (ans) {

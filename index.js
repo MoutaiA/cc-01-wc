@@ -34,6 +34,10 @@ for (const arg of arguments) {
 	ans += ARGUMENTS_MAPPING[arg](file);
 }
 
+if (!arguments || arguments.length === 0) {
+	ans = `${ARGUMENTS_MAPPING['l'](file)}\t${ARGUMENTS_MAPPING['w'](file)}\t${ARGUMENTS_MAPPING['m'](file)}`;
+}
+
 if (ans) {
 	console.log(`\t${ans} ${filename}`);
 }

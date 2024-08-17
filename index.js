@@ -64,11 +64,10 @@ function getCharacters(file) {
 		return 0;
 	}
 
-	file = file.toString('utf8');
+	let str = file.toString('utf8');
+	str = str.normalize();
 
-	if (file.length === 0) {
-		return 0;
-	}
+	const chars = Array.from(str);
 
-	return file.length;
+	return chars.length;
 }

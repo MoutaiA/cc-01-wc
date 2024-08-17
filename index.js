@@ -7,46 +7,11 @@ const ARGUMENTS_MAPPING = {
 	m: getCharacters,
 };
 
-const { argv } = process;
-
-if (argv.length < 3) {
-	console.log('No file provided');
-	return;
-}
-const arguments = [];
-for (let i = 2; i < argv.length; i++) {
-	if (argv[i].includes('-')) {
-		let s = argv[i].split('-');
-		s = s.filter((a) => a !== '');
-		arguments.push(...s);
-	}
-}
-
-const filename = argv[argv.length - 1];
-const file = readFileSync(filename);
-
-let ans = '';
-for (const arg of arguments) {
-	if (!(arg in ARGUMENTS_MAPPING)) {
-		console.log(`ccwc: illegel option -- ${arg}`);
-		continue;
-	}
-	ans += ARGUMENTS_MAPPING[arg](file);
-}
-
-if (!arguments || arguments.length === 0) {
-	ans = `${ARGUMENTS_MAPPING['l'](file)}\t${ARGUMENTS_MAPPING['w'](file)}\t${ARGUMENTS_MAPPING['m'](file)}`;
-}
-
-if (ans) {
-	console.log(`\t${ans} ${filename}`);
-}
-
 function getLines(file) {
 	if (!file) {
 		return 0;
 	}
-	return file.toString('utf8').split('\n').length - 1;
+	return file.split('\n').length - 1;
 }
 
 function getWords(file) {
@@ -54,7 +19,7 @@ function getWords(file) {
 		return 0;
 	}
 
-	file = file.toString('utf8').trim();
+	file = file.trim();
 
 	if (file.length === 0) {
 		return 0;
@@ -68,10 +33,76 @@ function getCharacters(file) {
 		return 0;
 	}
 
-	let str = file.toString('utf8');
-	str = str.normalize();
+	const str = file.normalize();
 
 	const chars = Array.from(str);
 
 	return chars.length;
 }
+
+async function getInputData() {
+	if (process.stdin.isTTY) {
+		const { argv } = process;
+		if (argv.length < 3) {
+			console.log('No file provided');
+			return;
+		}
+
+		const arguments = [];
+		for (let i = 2; i < argv.length; i++) {
+			if (argv[i].includes('-')) {
+				let s = argv[i].split('-');
+				s = s.filter((a) => a !== '');
+				arguments.push(...s);
+			}
+		}
+		const filename = argv[argv.length - 1];
+		let file = readFileSync(filename);
+		file = file.toString('utf8');
+
+		return {
+			file,
+			arguments,
+			filename,
+		};
+	} else {
+		process.stdin.setEncoding('utf8');
+		let inputData = '';
+
+		const readFile = () =>
+			new Promise((resolve) => {
+				process.stdin.on('data', (chunk) => {
+					inputData += chunk;
+				});
+
+				process.stdin.on('end', () => {
+					resolve(inputData);
+				});
+			});
+		return { file: await readFile() };
+	}
+}
+
+async function main() {
+	let { file, filename = '', arguments = [] } = await getInputData();
+	let ans = '';
+
+	for (const arg of arguments) {
+		if (!(arg in ARGUMENTS_MAPPING)) {
+			console.log(`ccwc: illegel option -- ${arg}`);
+			continue;
+		}
+		ans += ARGUMENTS_MAPPING[arg](file);
+	}
+
+	if (!arguments || arguments.length === 0) {
+		ans = `${ARGUMENTS_MAPPING['l'](file)}\t${ARGUMENTS_MAPPING['w'](file)}\t${ARGUMENTS_MAPPING['m'](file)}`;
+	}
+
+	if (ans) {
+		console.log(`\t${ans} ${filename}`);
+	}
+	process.exit();
+}
+
+main();

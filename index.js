@@ -52,7 +52,7 @@ async function getInputData() {
 		const filesFromArgs = [];
 		for (let i = 2; i < argv.length; i++) {
 			if (argv[i].includes('-')) {
-				let s = argv[i].split('-');
+				let s = argv[i].slice(1).split('');
 				s = s.filter((a) => a !== '');
 				arguments.push(...s);
 			} else {

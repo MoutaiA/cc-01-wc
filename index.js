@@ -49,21 +49,27 @@ async function getInputData() {
 		}
 
 		const arguments = [];
+		const filesFromArgs = [];
 		for (let i = 2; i < argv.length; i++) {
 			if (argv[i].includes('-')) {
 				let s = argv[i].split('-');
 				s = s.filter((a) => a !== '');
 				arguments.push(...s);
+			} else {
+				filesFromArgs.push(i);
 			}
 		}
-		const filename = argv[argv.length - 1];
-		let file = readFileSync(filename);
-		file = file.toString('utf8');
+		const files = [];
+		for (const i of filesFromArgs) {
+			const filename = argv[i];
+			let file = readFileSync(filename);
+			file = file.toString('utf8');
+			files.push({ file, filename });
+		}
 
 		return {
-			file,
+			files,
 			arguments,
-			filename,
 		};
 	} else {
 		process.stdin.setEncoding('utf8');
@@ -79,28 +85,48 @@ async function getInputData() {
 					resolve(inputData);
 				});
 			});
-		return { file: await readFile() };
+		return { files: [{ file: await readFile() }] };
 	}
 }
 
 async function main() {
-	let { file, filename = '', arguments = [] } = await getInputData();
+	// TODO: multiple files & multiple args
+	let { files, arguments = [] } = await getInputData();
 	let ans = '';
 
-	for (const arg of arguments) {
-		if (!(arg in ARGUMENTS_MAPPING)) {
-			console.log(`ccwc: illegel option -- ${arg}`);
-			continue;
+	for (const file of files) {
+		for (const arg of arguments) {
+			if (!(arg in ARGUMENTS_MAPPING)) {
+				console.log(`ccwc: illegel option -- ${arg}`);
+				continue;
+			}
+
+			ans += ARGUMENTS_MAPPING[arg](file);
 		}
-		ans += ARGUMENTS_MAPPING[arg](file);
+		if (ans) {
+			ans += '\n';
+		}
 	}
 
 	if (!arguments || arguments.length === 0) {
-		ans = `${ARGUMENTS_MAPPING['l'](file)}\t${ARGUMENTS_MAPPING['w'](file)}\t${ARGUMENTS_MAPPING['m'](file)}`;
+		let totalLines = 0;
+		let totalWords = 0;
+		let totalCharacters = 0;
+		for (const cur of files) {
+			const { file, filename = '' } = cur;
+			const lines = ARGUMENTS_MAPPING['l'](file);
+			const words = ARGUMENTS_MAPPING['w'](file);
+			const chars = ARGUMENTS_MAPPING['m'](file);
+			totalLines += lines;
+			totalWords += words;
+			totalCharacters += chars;
+			ans += `${lines}\t${words}\t${chars}\t${filename}\n`;
+		}
+		ans += `${totalLines}\t${totalWords}\t${totalCharacters}`
 	}
 
 	if (ans) {
-		console.log(`\t${ans} ${filename}`);
+		console.log(`\r${ans}`);
 	}
 	process.exit();
 }

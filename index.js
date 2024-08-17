@@ -3,6 +3,7 @@ const { readFileSync } = require('fs');
 const ARGUMENTS_MAPPING = {
 	c: Buffer.byteLength,
 	l: getLines,
+	w: getWords,
 };
 
 const { argv } = process;
@@ -32,11 +33,27 @@ for (const arg of arguments) {
 	ans += ARGUMENTS_MAPPING[arg](file);
 }
 
-console.log(`\t${ans} ${filename}`);
+if (ans) {
+	console.log(`\t${ans} ${filename}`);
+}
 
 function getLines(file) {
 	if (!file) {
 		return 0;
 	}
-	return file.toString('utf8').split('\n').length -1
+	return file.toString('utf8').split('\n').length - 1;
+}
+
+function getWords(file) {
+	if (!file) {
+		return 0;
+	}
+
+	file = file.toString('utf8').trim();
+
+	if (file.length === 0) {
+		return 0;
+	}
+
+	return file.split(/\s+/).filter((w) => w.length).length;
 }

@@ -110,9 +110,13 @@ async function main() {
 			ans += `${filename}\n`;
 		}
 	}
+	ans = ans.slice(0, ans.length - 1);
 
-	for (const total of totals) {
-		ans += `${total}\t`;
+	if (files.length > 1) {
+		ans += '\n';
+		for (const total of totals) {
+			ans += `${total}\t`;
+		}
 	}
 
 	if (!arguments || arguments.length === 0) {

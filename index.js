@@ -4,6 +4,7 @@ const ARGUMENTS_MAPPING = {
 	c: Buffer.byteLength,
 	l: getLines,
 	w: getWords,
+	m: getCharacters,
 };
 
 const { argv } = process;
@@ -56,4 +57,18 @@ function getWords(file) {
 	}
 
 	return file.split(/\s+/).filter((w) => w.length).length;
+}
+
+function getCharacters(file) {
+	if (!file) {
+		return 0;
+	}
+
+	file = file.toString('utf8');
+
+	if (file.length === 0) {
+		return 0;
+	}
+
+	return file.length;
 }
